@@ -108,9 +108,15 @@ You can then access the application through the following URL:
 CONFIGURATION
 -------------
 
+### Params
+
+Copy the file `config/params.php` to `config/params-local.php`.
+Edit the file `config/params-local.php` with real data.
+
 ### Database
 
-Edit the file `config/db.php` with real data, for example:
+Copy the file `config/db.php` to `config/db-local.php`.
+Edit the file `config/db-local.php` with real data, for example:
 
 ```php
 return [

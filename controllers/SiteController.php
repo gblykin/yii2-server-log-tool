@@ -2,6 +2,13 @@
 
 namespace app\controllers;
 
+use app\models\search\LogSearch;
+use app\models\search\PopularBrowserSearch;
+use app\models\search\RequestsCountSearch;
+use app\services\parsers\LogFileParser;
+use app\services\progressbars\ConsoleProgressBar;
+use app\services\readers\LogFileReader;
+use app\services\writers\DBWriter;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -54,6 +61,21 @@ class SiteController extends Controller
         ];
     }
 
+    public function actionTest()
+    {
+        set_time_limit(0);
+        $startTime = time();
+        $parser = new LogFileParser(
+            new LogFileReader('%h %l %u %t "%m %U %P" %>s %O "%{Referer}i" \"%{User-Agent}i"'),
+            new DBWriter(\yii\db\ActiveRecord::class),
+            new ConsoleProgressBar(),
+        );
+        $parser->init('C:\OpenServer\domains\st.loc\tmp\test\7k');
+        $parser->parse([]);
+        $parser->setFinishTime();
+        $content = (Yii::t('app', 'Total processing time: {time} sec', ['time' => (time() - $startTime)]));
+        return $this->render('test', ['content' => $content]);
+    }
     /**
      * Displays homepage.
      *
@@ -61,7 +83,26 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $requestsCountSearchModel = new RequestsCountSearch();
+        $requestsCountDataProvider = $requestsCountSearchModel->search(Yii::$app->request->queryParams);
+
+        $popularBrowserSearchModel = new PopularBrowserSearch();
+        $popularBrowserDataProvider = $popularBrowserSearchModel->search(Yii::$app->request->queryParams);
+
+        $logSearchModel = new LogSearch();
+        $logDataProvider = $logSearchModel->search(Yii::$app->request->queryParams);
+
+
+        return $this->render('index', [
+            'requestsCountSearchModel' => $requestsCountSearchModel,
+            'requestsCountDataProvider' => $requestsCountDataProvider,
+
+            'popularBrowserSearchModel' => $popularBrowserSearchModel,
+            'popularBrowserDataProvider' => $popularBrowserDataProvider,
+
+            'logSearchModel' => $logSearchModel,
+            'logDataProvider' => $logDataProvider,
+        ]);
     }
 
     /**

@@ -4,7 +4,7 @@ App for parsing and analyze server logs based on [Yii 2](http://www.yiiframework
 
 BASIC USAGE
 -------------------
-Basic usage for upload log: `php yii parsing/parse-files <path-to-file-or-dir>`
+Basic console command for upload log: `php yii parsing/parse-files <path-to-file-or-dir>`
 
 REQUIREMENTS
 ------------

@@ -16,12 +16,24 @@ use Yii;
 use yii\db\Exception;
 use app\services\helpers\UserAgentHelper;
 
+/**
+ * LogFileParser is the class that implements the AbstractParser for parsing server logs
+ */
 class LogFileParser extends AbstractParser
 {
     public int $linesInIteration = 100;
     public LogUpload $logUpload;
     public string $path;
 
+
+    /**
+     * Constructor
+     *
+     * @param ReaderInterface $reader
+     * @param WriterInterface $writer
+     * @param ProgressBarInterface $progressBar
+     * @throws Exception
+     */
     public function __construct(ReaderInterface $reader, WriterInterface $writer, ProgressBarInterface $progressBar)
     {
         $logUpload = new LogUpload([
@@ -36,23 +48,36 @@ class LogFileParser extends AbstractParser
         parent::__construct($reader, $writer, $progressBar);
     }
 
+    /**
+     * Init additional parameters of Parser entity
+     *
+     * @param $path
+     */
     public function init($path){
         $this->path = $path;
         $this->setLogUploadName();
         $this->logFile = Yii::getAlias('@app') . '/tmp/parser-log_'.$this->logUpload->id . '.log';
     }
 
+    /**
+     * Set name of assigned LogUpload model
+     */
     public function setLogUploadName(){
         $this->logUpload->title = $this->path;
         $this->logUpload->save();
     }
 
+    /**
+     * Set finish time for assigned LogUpload model
+     */
     public function setFinishTime(){
         $this->logUpload->finished_at = time();
         $this->logUpload->save();
     }
 
     /**
+     * Validate params
+     *
      * @throws InvalidConfigException
      */
     protected function validate(array $params){
@@ -69,7 +94,14 @@ class LogFileParser extends AbstractParser
         }
     }
 
-    public function getFilesFromDirectory($path){
+    /**
+     * returns files list from $path directory
+     *
+     * @param $path
+     * @return array
+     */
+    public function getFilesFromDirectory($path): array
+    {
         $files = scandir($path);
         $resultFiles = [];
         if (!empty($files)){
@@ -82,7 +114,12 @@ class LogFileParser extends AbstractParser
         return $resultFiles;
     }
 
-    public static function prepareData($data){
+    /**
+     * @param array $data
+     * @return array
+     */
+    public static function prepareData(array $data): array
+    {
         $resultData = [];
         if (!empty($data)){
             $userAgentInfoList = [];
@@ -141,7 +178,14 @@ class LogFileParser extends AbstractParser
         return $resultData;
     }
 
-    public function linesCountInFile($filePath){
+    /**
+     * returns count of lines in file by path $filePath
+     *
+     * @param string $filePath
+     * @return int
+     */
+    public function linesCountInFile(string $filePath): int
+    {
         $file = new SplFileObject($filePath, 'r');
         $file->seek(PHP_INT_MAX);
         $count = $file->key();
@@ -149,7 +193,16 @@ class LogFileParser extends AbstractParser
         return $count + 1;
     }
 
-    public function scanFile($filePath, $offset, $count, $totalLinesCount){
+    /**
+     * Scan part of $filePath file.
+     *
+     * @param string $filePath file path
+     * @param int $offset offset
+     * @param int $count count of lines for reading
+     * @param int $totalLinesCount total lines count in file
+     */
+    public function scanFile(string $filePath, int $offset, int $count, int $totalLinesCount)
+    {
         $data = [];
         $file = new SplFileObject($filePath, 'r');
         $file->seek($offset);
@@ -180,7 +233,13 @@ class LogFileParser extends AbstractParser
         }
     }
 
-    public function readFile($filePath){
+    /**
+     * Parsing of $filePath file
+     *
+     * @param string $filePath
+     */
+    public function readFile(string $filePath)
+    {
         $totalLinesCount = $this->linesCountInFile($filePath);
         $this->progressBar::startProgress(0, $totalLinesCount);
         $this->scanFile($filePath, 0, 1000, $totalLinesCount);
@@ -188,6 +247,8 @@ class LogFileParser extends AbstractParser
     }
 
     /**
+     * Main process function for file parsing
+     *
      * @throws InvalidConfigException
      */
     public function parse(array $params)

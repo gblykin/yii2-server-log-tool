@@ -1,9 +1,26 @@
 <?php
 namespace app\helpers;
 
+use Exception;
+
+/**
+ * Helper for fill data for time intervals
+ */
 class DataHelper
 {
-    public static function fillData($from, $to, $emptyFiller = [], $data = [], $dateField = null){
+    /**
+     * returns modified $date array by $dateField keys and filled by $emptyFiller values if source data has no needed value
+     *
+     * @param int|string $from start date (timestamp or date in format 'Y-m-d')
+     * @param int|string $to finish date (timestamp or date in format 'Y-m-d')
+     * @param array $emptyFiller array of values which will be set for every item in result data array (if item no has needed key in data array)
+     * @param array $data main array with data
+     * @param null $dateField key with date
+     * @return array
+     * @throws Exception
+     */
+    public static function fillData($from, $to, array $emptyFiller = [], array $data = [], $dateField = null): array
+    {
         $resultData = [];
 
         $dateFrom = is_numeric($from) ? date('Y-m-d', $from) : $from;
